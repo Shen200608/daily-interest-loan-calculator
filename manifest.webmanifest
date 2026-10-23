@@ -1,0 +1,54 @@
+{
+  "name": "利息计算器 · 每日利息 / 贷款 / 网贷 / 利率换算",
+  "short_name": "利息计算器",
+  "description": "开源零依赖的利息计算器：每日利息、双收益率对比、贷款分期明细、网贷日还款、利率换算与利率大全。纯前端计算，数据不出本机。",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f6fb",
+  "theme_color": "#3b5bdb",
+  "categories": ["finance", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "利息计算",
+      "short_name": "利息",
+      "url": "./index.html#interest",
+      "description": "输入本金与两个收益率，立即对比高低"
+    },
+    {
+      "name": "贷款计算",
+      "short_name": "贷款",
+      "url": "./index.html#loan",
+      "description": "等额本息 / 等额本金逐期明细"
+    },
+    {
+      "name": "网贷计算",
+      "short_name": "网贷",
+      "url": "./index.html#online",
+      "description": "每日利息、每日还款与真实年化"
+    },
+    {
+      "name": "利率大全",
+      "short_name": "利率",
+      "url": "./index.html#rates",
+      "description": "官方口径与民间叫法一网打尽"
+    }
+  ]
+}

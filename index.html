@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>利息计算器 · 每日利息 / 贷款 / 网贷 / 利率换算</title>
+<meta name="description" content="开源零依赖的利息计算器：每日利息、双收益率对比、贷款分期明细、网贷日还款、利率换算与利率大全。纯前端计算，数据不出本机。">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="css/app.css?v=4">
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<noscript>
+  <div class="noscript-note" role="alert">
+    <strong>本计算器需要启用 JavaScript。</strong>
+    所有计算都在你的浏览器本地完成，不会上传任何数据。请在浏览器设置中允许本页面运行 JavaScript 后刷新。
+  </div>
+</noscript>
+
+<div id="modeBanner" class="banner" hidden>
+  <span class="banner__icon" aria-hidden="true">ⓘ</span>
+  <p id="modeBannerText" class="banner__text"></p>
+  <button type="button" id="modeBannerClose" class="banner__close" aria-label="关闭提示">×</button>
+</div>
+
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <div class="brand">
+      <img class="brand__mark" src="icon.svg" width="36" height="36" alt="" aria-hidden="true">
+      <div class="brand__text">
+        <h1 class="brand__title">利息计算器</h1>
+        <p class="brand__sub">每日利息 · 贷款分期 · 网贷成本 · 利率换算</p>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="功能页签">
+      <button type="button" class="tab is-active" role="tab" id="tab-interest" aria-selected="true" aria-controls="panel-interest" data-tab="interest">利息计算</button>
+      <button type="button" class="tab" role="tab" id="tab-loan" aria-selected="false" aria-controls="panel-loan" data-tab="loan" tabindex="-1">贷款计算</button>
+      <button type="button" class="tab" role="tab" id="tab-online" aria-selected="false" aria-controls="panel-online" data-tab="online" tabindex="-1">网贷计算</button>
+      <button type="button" class="tab" role="tab" id="tab-convert" aria-selected="false" aria-controls="panel-convert" data-tab="convert" tabindex="-1">利率换算</button>
+      <button type="button" class="tab" role="tab" id="tab-rates" aria-selected="false" aria-controls="panel-rates" data-tab="rates" tabindex="-1">利率大全</button>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <!-- ==================== 页签 1：利息计算 ==================== -->
+  <section class="panel" id="panel-interest" role="tabpanel" aria-labelledby="tab-interest" tabindex="0">
+    <div class="panel__head">
+      <h2 class="panel__title">利息计算</h2>
+      <p class="panel__desc">输入本金，再从下方挑两个收益率并排对比——马上看清哪个高、差多少。</p>
+    </div>
+
+    <div class="card">
+      <div class="field field--principal">
+        <label class="field__label" for="principal">本金（元）</label>
+        <div class="input-affix">
+          <span class="input-affix__prefix" aria-hidden="true">¥</span>
+          <input id="principal" class="input input--num" type="text" inputmode="decimal" autocomplete="off"
+                 value="10000" placeholder="例如 10000" aria-describedby="principalUpper principalHelp">
+        </div>
+        <p class="field__hint" id="principalUpper" aria-live="polite">人民币壹万元整</p>
+      </div>
+      <div class="quick-row" id="principalPresets" role="group" aria-label="本金快捷金额">
+        <button type="button" class="chip" data-amount="1000">1 千</button>
+        <button type="button" class="chip" data-amount="10000">1 万</button>
+        <button type="button" class="chip" data-amount="50000">5 万</button>
+        <button type="button" class="chip" data-amount="100000">10 万</button>
+        <button type="button" class="chip" data-amount="1000000">100 万</button>
+      </div>
+    </div>
+
+    <div class="compare-grid">
+      <div class="card rate-card" id="cardA">
+        <div class="rate-card__head">
+          <span class="rate-card__badge">方案 A</span>
+          <button type="button" class="link-btn" id="swapRates" title="交换 A 与 B" aria-label="交换方案 A 与方案 B">⇄ 交换</button>
+        </div>
+        <div class="field">
+          <label class="field__label" for="rateA-annual">年化利率（%）</label>
+          <div class="input-affix">
+            <input id="rateA-annual" class="input input--num" type="number" min="0" max="1000" step="0.01" value="1.5" inputmode="decimal">
+            <span class="input-affix__suffix" aria-hidden="true">%</span>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field__label">从利率大全选择</span>
+          <div class="rate-select" id="rateA-select" data-group="all" data-target="rateA-annual"></div>
+        </div>
+        <p class="rate-card__note" id="rateA-note"></p>
+      </div>
+
+      <div class="card rate-card" id="cardB">
+        <div class="rate-card__head">
+          <span class="rate-card__badge rate-card__badge--b">方案 B</span>
+          <button type="button" class="link-btn" id="swapRatesB" title="交换 A 与 B" aria-label="交换方案 A 与方案 B">⇄ 交换</button>
+        </div>
+        <div class="field">
+          <label class="field__label" for="rateB-annual">年化利率（%）</label>
+          <div class="input-affix">
+            <input id="rateB-annual" class="input input--num" type="number" min="0" max="1000" step="0.01" value="3.0" inputmode="decimal">
+            <span class="input-affix__suffix" aria-hidden="true">%</span>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field__label">从利率大全选择</span>
+          <div class="rate-select" id="rateB-select" data-group="all" data-target="rateB-annual"></div>
+        </div>
+        <p class="rate-card__note" id="rateB-note"></p>
+      </div>
+    </div>
+
+    <div class="results" id="interestResults" aria-live="polite" aria-atomic="false">
+      <div class="verdict" id="interestVerdict"></div>
+      <div class="stat-grid">
+        <div class="stat" id="statAdaily">
+          <span class="stat__label">A 每日利息</span>
+          <span class="stat__value" id="resAdaily">—</span>
+        </div>
+        <div class="stat" id="statBdaily">
+          <span class="stat__label">B 每日利息</span>
+          <span class="stat__value" id="resBdaily">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">每日差额</span>
+          <span class="stat__value" id="resDiffDaily">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">每月差额</span>
+          <span class="stat__value" id="resDiffMonthly">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">每年差额</span>
+          <span class="stat__value" id="resDiffAnnual">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">倍数关系</span>
+          <span class="stat__value" id="resRatio">—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card__head">
+          <h3 class="card__title">持有期间与计息口径</h3>
+          <p class="card__desc">这里的三项只作用于下方「累计收益」表：持有天数决定算多久，计息基准与复利决定怎么算。</p>
+        </div>
+        <div class="field">
+          <span class="field__label" id="periodLabel">持有天数</span>
+          <div class="seg" id="periodChips" role="group" aria-labelledby="periodLabel">
+            <button type="button" class="seg__btn" data-days="7">7 天</button>
+            <button type="button" class="seg__btn is-active" data-days="30">30 天</button>
+            <button type="button" class="seg__btn" data-days="90">90 天</button>
+            <button type="button" class="seg__btn" data-days="365">1 年</button>
+            <button type="button" class="seg__btn" data-days="custom">自定义</button>
+          </div>
+          <div class="inline-fields">
+            <label class="field field--inline" for="daysInput">
+              <span class="field__label">自定义天数</span>
+              <input id="daysInput" class="input input--num" type="number" min="1" max="36500" step="1" value="30">
+            </label>
+            <div class="field field--inline">
+              <span class="field__label" id="basisLabel">计息基准</span>
+              <div class="seg seg--sm" id="basisToggle" role="group" aria-labelledby="basisLabel">
+                <button type="button" class="seg__btn is-active" data-basis="365">日历天 365</button>
+                <button type="button" class="seg__btn" data-basis="360">360 天</button>
+              </div>
+            </div>
+            <label class="switch field--inline" for="compoundToggle">
+              <input id="compoundToggle" type="checkbox" role="switch">
+              <span class="switch__track" aria-hidden="true"><span class="switch__dot"></span></span>
+              <span class="switch__label">复利（按日计息）</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card--flat">
+        <div class="card__head">
+          <h3 class="card__title" id="periodResultTitle">持有 30 天的累计收益</h3>
+          <p class="card__desc" id="basisNote">当前口径：日历天 365 基准 · 单利</p>
+        </div>
+        <div class="table-scroll">
+          <table class="table">
+            <caption class="sr-only">按当前口径计算的期间收益与到期本息</caption>
+            <thead>
+              <tr>
+                <th scope="col">方案</th>
+                <th scope="col">年化</th>
+                <th scope="col">期间利息</th>
+                <th scope="col">到期本息</th>
+                <th scope="col" id="gainHead" hidden>复利增益</th>
+              </tr>
+            </thead>
+            <tbody id="periodTableBody">
+              <tr><td colspan="5" class="table__empty">输入本金与利率后自动计算</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 页签 2：贷款计算 ==================== -->
+  <section class="panel" id="panel-loan" role="tabpanel" aria-labelledby="tab-loan" tabindex="0" hidden>
+    <div class="panel__head">
+      <h2 class="panel__title">贷款计算</h2>
+      <p class="panel__desc">看清多少是利息、多少是本金——逐期明细一目了然。</p>
+    </div>
+
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label class="field__label" for="loanPrincipal">贷款本金（元）</label>
+          <div class="input-affix">
+            <span class="input-affix__prefix" aria-hidden="true">¥</span>
+            <input id="loanPrincipal" class="input input--num" type="text" inputmode="decimal" autocomplete="off" value="1000000">
+          </div>
+          <p class="field__hint" id="loanPrincipalUpper" aria-live="polite"></p>
+        </div>
+        <div class="field">
+          <label class="field__label" for="loanRate">年化利率（%）</label>
+          <div class="input-affix">
+            <input id="loanRate" class="input input--num" type="number" min="0" max="1000" step="0.01" value="4.9" inputmode="decimal">
+            <span class="input-affix__suffix" aria-hidden="true">%</span>
+          </div>
+        </div>
+        <div class="field field--wide">
+          <span class="field__label">从利率大全选择</span>
+          <div class="rate-select" id="loanRateSelect" data-group="all" data-target="loanRate"></div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="loanTerm">贷款期限</label>
+          <div class="term-row">
+            <input id="loanTerm" class="input input--num" type="number" min="1" max="1200" step="1" value="30" inputmode="numeric">
+            <select id="loanTermUnit" class="input select" aria-label="期限单位">
+              <option value="year" selected>年</option>
+              <option value="month">月</option>
+            </select>
+          </div>
+          <p class="field__hint" id="loanMonthsHint"></p>
+        </div>
+      </div>
+
+      <fieldset class="fieldset">
+        <legend class="field__label">还款方式</legend>
+        <div class="radio-grid" id="loanMethods" role="radiogroup" aria-label="还款方式">
+          <label class="radio-card">
+            <input type="radio" name="loan-method" value="equal_installment" checked>
+            <span class="radio-card__body">
+              <span class="radio-card__title">等额本息</span>
+              <span class="radio-card__desc">每月还款额固定，前期利息多</span>
+            </span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="loan-method" value="equal_principal">
+            <span class="radio-card__body">
+              <span class="radio-card__title">等额本金</span>
+              <span class="radio-card__desc">每月本金固定，月供逐月递减</span>
+            </span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="loan-method" value="interest_first">
+            <span class="radio-card__body">
+              <span class="radio-card__title">先息后本</span>
+              <span class="radio-card__desc">每月只还利息，到期还本金</span>
+            </span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="loan-method" value="bullet">
+            <span class="radio-card__body">
+              <span class="radio-card__title">到期一次还本付息</span>
+              <span class="radio-card__desc">期间不还款，到期一次性结清</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="results" id="loanResults" aria-live="polite">
+      <div class="stat-grid stat-grid--4">
+        <div class="stat stat--hero">
+          <span class="stat__label" id="loanPaymentLabel">每月还款</span>
+          <span class="stat__value" id="loanMonthly">—</span>
+          <span class="stat__sub" id="loanMonthlySub"></span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">总利息</span>
+          <span class="stat__value" id="loanTotalInterest">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">总还款</span>
+          <span class="stat__value" id="loanTotalPayment">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">利息占比</span>
+          <span class="stat__value" id="loanInterestRatio">—</span>
+        </div>
+      </div>
+
+      <div class="card card--flat">
+        <div class="card__head">
+          <h3 class="card__title">利息 vs 本金</h3>
+          <p class="card__desc" id="loanBarDesc">总还款中本金与利息的构成</p>
+        </div>
+        <div class="stack-bar" id="loanBar" role="img" aria-label="总还款中本金与利息的构成">
+          <span class="stack-bar__principal" id="loanBarPrincipal" style="width:100%"></span>
+          <span class="stack-bar__interest" id="loanBarInterest" style="width:0%"></span>
+        </div>
+        <ul class="legend">
+          <li><span class="legend__dot legend__dot--principal"></span>本金 <b id="loanLegendPrincipal">—</b></li>
+          <li><span class="legend__dot legend__dot--interest"></span>利息 <b id="loanLegendInterest">—</b></li>
+        </ul>
+      </div>
+
+      <div class="card card--flat">
+        <div class="card__head card__head--row">
+          <div>
+            <h3 class="card__title">逐期明细</h3>
+            <p class="card__desc" id="loanTableDesc">每期本金、利息与剩余本金</p>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn--ghost" id="loanExport">导出 CSV</button>
+          </div>
+        </div>
+        <div class="table-scroll table-scroll--tall">
+          <table class="table table--num" id="loanTable">
+            <caption class="sr-only">贷款逐期还款明细</caption>
+            <thead>
+              <tr>
+                <th scope="col">期数</th>
+                <th scope="col">月供</th>
+                <th scope="col">本金</th>
+                <th scope="col">利息</th>
+                <th scope="col">剩余本金</th>
+              </tr>
+            </thead>
+            <tbody id="loanTableBody">
+              <tr><td colspan="5" class="table__empty">调整上方参数后自动生成</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 页签 3：网贷计算 ==================== -->
+  <section class="panel" id="panel-online" role="tabpanel" aria-labelledby="tab-online" tabindex="0" hidden>
+    <div class="panel__head">
+      <h2 class="panel__title">网贷计算</h2>
+      <p class="panel__desc">每天要还多少、利息多少、真实成本多少——先看清再点借款。</p>
+    </div>
+
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label class="field__label" for="onlinePrincipal">借款本金（元）</label>
+          <div class="input-affix">
+            <span class="input-affix__prefix" aria-hidden="true">¥</span>
+            <input id="onlinePrincipal" class="input input--num" type="text" inputmode="decimal" autocomplete="off" value="10000">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="onlineRate">年化利率（%）</label>
+          <div class="input-affix">
+            <input id="onlineRate" class="input input--num" type="number" min="0" max="1000" step="0.01" value="18.25" inputmode="decimal">
+            <span class="input-affix__suffix" aria-hidden="true">%</span>
+          </div>
+        </div>
+        <div class="field field--wide">
+          <span class="field__label">从「网贷平台」选择（自动带出区间中值）</span>
+          <div class="rate-select" id="onlineRateSelect" data-group="online_loan" data-target="onlineRate"></div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="onlineDays">借款天数</label>
+          <div class="term-row">
+            <input id="onlineDays" class="input input--num" type="number" min="1" max="36500" step="1" value="30" inputmode="numeric">
+            <select id="onlineDaysUnit" class="input select" aria-label="天数输入单位">
+              <option value="day" selected>天</option>
+              <option value="month">月（按 30 天）</option>
+            </select>
+          </div>
+          <p class="field__hint" id="onlineDaysHint"></p>
+        </div>
+      </div>
+
+      <fieldset class="fieldset">
+        <legend class="field__label">还款方式</legend>
+        <div class="radio-grid radio-grid--2" id="onlineMethods" role="radiogroup" aria-label="网贷还款方式">
+          <label class="radio-card">
+            <input type="radio" name="online-method" value="interest_first" checked>
+            <span class="radio-card__body">
+              <span class="radio-card__title">每日还息 · 到期还本</span>
+              <span class="radio-card__desc">每天只付利息，最后一天归还本金</span>
+            </span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="online-method" value="equal_installment_daily">
+            <span class="radio-card__body">
+              <span class="radio-card__title">每日等额本息</span>
+              <span class="radio-card__desc">本金按天摊还，每天还款额相同</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="risk-bar" id="onlineRisk" role="status" aria-live="polite"></div>
+
+    <div class="results" id="onlineResults" aria-live="polite">
+      <div class="stat-grid stat-grid--5">
+        <div class="stat">
+          <span class="stat__label">每日利息</span>
+          <span class="stat__value" id="onlineDailyInterest">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">每日还款</span>
+          <span class="stat__value" id="onlineDailyPayment">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">总利息</span>
+          <span class="stat__value" id="onlineTotalInterest">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">总还款</span>
+          <span class="stat__value" id="onlineTotalPayment">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">实际年化（IRR）</span>
+          <span class="stat__value" id="onlineApr">—</span>
+          <span class="stat__sub" id="onlineAprSub"></span>
+        </div>
+      </div>
+
+      <div class="card card--flat">
+        <div class="card__head card__head--row">
+          <div>
+            <h3 class="card__title">还款明细</h3>
+            <p class="card__desc" id="onlineTableDesc">按月聚合展示，展开可查看全部</p>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn--ghost" id="onlineToggleAll" aria-expanded="false">展开全部</button>
+            <button type="button" class="btn btn--ghost" id="onlineExport">导出 CSV</button>
+          </div>
+        </div>
+        <div class="table-scroll table-scroll--tall">
+          <table class="table table--num" id="onlineTable">
+            <caption class="sr-only">网贷还款明细</caption>
+            <thead>
+              <tr>
+                <th scope="col" id="onlineThPeriod">天数</th>
+                <th scope="col">还款</th>
+                <th scope="col">本金</th>
+                <th scope="col">利息</th>
+                <th scope="col">剩余本金</th>
+              </tr>
+            </thead>
+            <tbody id="onlineTableBody">
+              <tr><td colspan="5" class="table__empty">调整上方参数后自动生成</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 页签 4：利率换算 ==================== -->
+  <section class="panel" id="panel-convert" role="tabpanel" aria-labelledby="tab-convert" tabindex="0" hidden>
+    <div class="panel__head">
+      <h2 class="panel__title">利率换算</h2>
+      <p class="panel__desc">一个数字，十种说法——年 / 月 / 日 / 万几 / 分 / 厘 / 毫 / 基点 一次看清。</p>
+    </div>
+
+    <div class="card">
+      <div class="form-grid form-grid--3">
+        <div class="field">
+          <label class="field__label" for="convValue">利率数值</label>
+          <input id="convValue" class="input input--num" type="number" min="0" max="1000" step="0.0001" value="1" inputmode="decimal">
+        </div>
+        <div class="field field--wide">
+          <label class="field__label" for="convKind">这个数值的口径是</label>
+          <select id="convKind" class="input select"></select>
+        </div>
+      </div>
+      <p class="field__hint" id="convHint">输入任意口径，下面同时给出所有表示方式。</p>
+    </div>
+
+    <div class="results" id="convResults" aria-live="polite">
+      <div class="convert-grid" id="convGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card__head">
+        <h3 class="card__title">「分 / 厘 / 毫」民间叫法对照</h3>
+        <p class="card__desc">同一个「1 分」，按月息解释是年化 12%，按年息解释是 10%——先问清是哪种。</p>
+      </div>
+      <div class="table-scroll">
+        <table class="table">
+          <caption class="sr-only">民间叫法对照表</caption>
+          <thead>
+            <tr>
+              <th scope="col">叫法</th>
+              <th scope="col">月利率</th>
+              <th scope="col">年化（按月息解释）</th>
+              <th scope="col">年化（按年息解释）</th>
+              <th scope="col">容易踩的坑</th>
+            </tr>
+          </thead>
+          <tbody id="convCustomaryBody">
+            <tr><td colspan="5" class="table__empty">加载中…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__head">
+        <h3 class="card__title">手续费 → 真实年化（IRR）</h3>
+        <p class="card__desc">「月费率 0.6%」听起来只有 7.2%，实际资金占用逐月减少，真实年化约 13.8%。</p>
+      </div>
+      <div class="form-grid form-grid--3">
+        <div class="field">
+          <label class="field__label" for="feePrincipal">分期本金（元）</label>
+          <div class="input-affix">
+            <span class="input-affix__prefix" aria-hidden="true">¥</span>
+            <input id="feePrincipal" class="input input--num" type="text" inputmode="decimal" value="10000">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="feeMonthly">月费率（%）</label>
+          <input id="feeMonthly" class="input input--num" type="number" min="0" max="100" step="0.01" value="0.6" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label class="field__label" for="feeMonths">分期期数（月）</label>
+          <input id="feeMonths" class="input input--num" type="number" min="1" max="1200" step="1" value="12" inputmode="numeric">
+        </div>
+      </div>
+      <div class="stat-grid stat-grid--4" id="feeResults" aria-live="polite">
+        <div class="stat stat--hero">
+          <span class="stat__label">真实年化（IRR）</span>
+          <span class="stat__value" id="feeAprReal">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">名义年化（月费率 × 12）</span>
+          <span class="stat__value" id="feeAprSimple">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">总手续费</span>
+          <span class="stat__value" id="feeTotal">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat__label">总还款</span>
+          <span class="stat__value" id="feeTotalPayment">—</span>
+        </div>
+      </div>
+      <p class="field__hint" id="feeHint"></p>
+    </div>
+  </section>
+
+  <!-- ==================== 页签 5：利率大全 ==================== -->
+  <section class="panel" id="panel-rates" role="tabpanel" aria-labelledby="tab-rates" tabindex="0" hidden>
+    <div class="panel__head">
+      <h2 class="panel__title">利率大全</h2>
+      <p class="panel__desc">官方口径 + 民间叫法 + 存款理财 + 贷款房贷 + 网贷平台，选一个直接带进计算器。</p>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label class="field__label" for="ratesSearch">搜索利率（支持别名与口语：LPR、公积金、余额宝、月息1分、日息万5…）</label>
+        <input id="ratesSearch" class="input" type="search" placeholder="输入关键字筛选，例如：房贷 / 公积金 / 万5 / 信用卡" autocomplete="off">
+      </div>
+      <p class="field__hint" id="ratesCount">加载中…</p>
+    </div>
+
+    <div id="ratesGroups" aria-live="polite">
+      <p class="table__empty">正在加载利率数据…</p>
+    </div>
+
+    <div class="card card--flat" id="ratesMeta" hidden></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="footer__privacy">🔒 纯前端计算：所有输入都只停留在你的浏览器里，不上传、不联网、不追踪。</p>
+    <p class="footer__note" id="footerNote">参考利率数据仅供估算，实际以金融机构合同与官方公告为准。</p>
+    <p class="footer__meta">利息计算器 · 开源（MIT）· 零依赖 · 支持离线与安装到桌面</p>
+  </div>
+</footer>
+
+<script src="js/finance.js?v=4"></script>
+<script src="js/rates.js?v=4"></script>
+<script src="js/ui.js?v=4"></script>
+<script src="js/main.js?v=4"></script>
+</body>
+</html>

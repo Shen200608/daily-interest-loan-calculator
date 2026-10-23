@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# PyInstaller 产物
+desktop/build/
+desktop/dist/
+desktop/pyinstaller-build/
+desktop/pyinstaller-dist/
+*.spec
+desktop/*.spec
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 本地临时文件
+*.log
+*.tmp
+shots/
+*.local.json
+.env
+
+# Node（本仓库不需要，但防止误提交）
+node_modules/
+npm-debug.log*
