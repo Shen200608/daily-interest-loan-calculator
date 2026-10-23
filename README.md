@@ -4,6 +4,20 @@
 
 **双端交付**：一个网页（可直接双击打开，也可部署成 GitHub Pages 网址）+ 一个 Windows 桌面软件（Python Tkinter，无需安装第三方库）。
 
+## 🌐 在线使用
+
+**https://shen200608.github.io/daily-interest-loan-calculator/**
+
+打开即用，无需安装、无需联网（可离线）、不收集任何数据。
+
+## 💾 桌面版下载
+
+[**Releases**](https://github.com/Shen200608/daily-interest-loan-calculator/releases/latest) → `LixiCalculator-Windows-x64.zip`
+
+解压整个文件夹后双击 `LixiCalculator.exe`，**不需要安装 Python**。
+
+> 未签名的 exe 可能被 SmartScreen 拦截：点「更多信息」→「仍要运行」。
+
 ---
 
 ## 功能
@@ -55,8 +69,10 @@ python -m http.server 8000
 ```
 
 **方式三：线上访问**
-仓库已配置 GitHub Actions 自动部署，推送到 `main` 后自动发布到 GitHub Pages。
-地址形如：`https://<你的用户名>.github.io/<仓库名>/`
+已部署到 GitHub Pages，直接用这个地址：
+**https://shen200608.github.io/daily-interest-loan-calculator/**
+
+> 部署方式：Pages 的 Source 设为 `Deploy from a branch` → 分支 `main` / 目录 `/ (root)`。往 `main` 推送后约 1 分钟自动更新。
 
 ### 桌面版（Windows / macOS / Linux）
 
@@ -82,7 +98,7 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 ## 项目结构
 
 ```
-lixi-calculator/
+daily-interest-loan-calculator/
 ├─ index.html              网页版入口（单页应用）
 ├─ css/app.css             样式（深色模式 / 响应式 / 打印友好）
 ├─ js/finance.js           全部金融公式（UMD，浏览器与 Node 共用）
@@ -93,8 +109,8 @@ lixi-calculator/
 ├─ desktop/build.ps1       PyInstaller 打包脚本
 ├─ tests/                  双端公式测试
 ├─ tools/validate_rates.py 利率数据校验
-├─ docs/                   利率大全、使用说明、发布指南
-└─ .github/workflows/      自动部署 GitHub Pages
+├─ docs/                   利率大全、使用说明
+└─ .nojekyll               跳过 Jekyll，Pages 直接托管静态文件
 ```
 
 ---
