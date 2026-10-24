@@ -9,7 +9,8 @@
 // v2：修复复利按日计息 + 期间表「复利增益」列语义
 // v3：期间表新增「单利对照／复利增益」独立列
 // v4：「持有期间与计息口径」卡片移到「累计收益」表上方
-const VERSION = 'v4';
+// v5：手机版 —— 底部导航、表格卡片化、大触摸目标、PWA 图标（含 maskable）
+const VERSION = 'v5';
 const SHELL_CACHE = 'lixi-shell-' + VERSION;
 const DATA_CACHE = 'lixi-data-' + VERSION;
 
@@ -19,11 +20,15 @@ const SHELL_ASSETS = [
   './index.html',
   './manifest.webmanifest',
   './icon.svg',
-  './css/app.css?v=4',
-  './js/finance.js?v=4',
-  './js/rates.js?v=4',
-  './js/ui.js?v=4',
-  './js/main.js?v=4'
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png',
+  './apple-touch-icon.png',
+  './css/app.css?v=5',
+  './js/finance.js?v=5',
+  './js/rates.js?v=5',
+  './js/ui.js?v=5',
+  './js/main.js?v=5'
 ];
 
 const DATA_ASSETS = ['./data/rates.json'];

@@ -8,10 +8,17 @@
 <meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="利息计算器">
+<meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="css/app.css?v=4">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="stylesheet" href="css/app.css?v=5">
 </head>
 <body>
 <a class="skip-link" href="#main">跳到主要内容</a>
@@ -49,6 +56,11 @@
 </header>
 
 <main id="main" class="wrap">
+  <div class="install-tip" id="installTip" hidden>
+    <span id="installTipText">把这个计算器装到手机桌面：iOS 点「分享 → 添加到主屏幕」，Android 点「⋮ → 添加到主屏幕」。装好后可全屏、可离线使用。</span>
+    <button type="button" class="install-tip__close" id="installTipClose" aria-label="关闭安装提示">×</button>
+  </div>
+
   <!-- ==================== 页签 1：利息计算 ==================== -->
   <section class="panel" id="panel-interest" role="tabpanel" aria-labelledby="tab-interest" tabindex="0">
     <div class="panel__head">
@@ -592,9 +604,33 @@
   </div>
 </footer>
 
-<script src="js/finance.js?v=4"></script>
-<script src="js/rates.js?v=4"></script>
-<script src="js/ui.js?v=4"></script>
-<script src="js/main.js?v=4"></script>
+<!-- 手机端底部导航（桌面端由 CSS 隐藏） -->
+<nav class="tabbar" id="tabbar" aria-label="主要功能导航">
+  <button type="button" class="tabbar__btn is-active" data-tab="interest" aria-current="page">
+    <span class="tabbar__icon" aria-hidden="true">💰</span>
+    <span>利息</span>
+  </button>
+  <button type="button" class="tabbar__btn" data-tab="loan">
+    <span class="tabbar__icon" aria-hidden="true">🏠</span>
+    <span>贷款</span>
+  </button>
+  <button type="button" class="tabbar__btn" data-tab="online">
+    <span class="tabbar__icon" aria-hidden="true">📱</span>
+    <span>网贷</span>
+  </button>
+  <button type="button" class="tabbar__btn" data-tab="convert">
+    <span class="tabbar__icon" aria-hidden="true">🔄</span>
+    <span>换算</span>
+  </button>
+  <button type="button" class="tabbar__btn" data-tab="rates">
+    <span class="tabbar__icon" aria-hidden="true">📊</span>
+    <span>利率</span>
+  </button>
+</nav>
+
+<script src="js/finance.js?v=5"></script>
+<script src="js/rates.js?v=5"></script>
+<script src="js/ui.js?v=5"></script>
+<script src="js/main.js?v=5"></script>
 </body>
 </html>

@@ -10,6 +10,26 @@
 
 打开即用，无需安装、无需联网（可离线）、不收集任何数据。
 
+### 📱 手机版
+
+**手机浏览器直接打开上面这个网址即可**，会自动切换为手机布局：
+
+- **底部导航栏**（利息 / 贷款 / 网贷 / 换算 / 利率）——拇指一伸就能够到，5 个页面随时切换
+- **宽表格变卡片**：贷款逐期明细、网贷还款明细、利率大全不再是需要左右拖的宽表格，每一行变成一张小卡片，一行一个数字
+- **大号触摸目标**：输入框、按钮、分段器都放大到 44px 以上，不会点错
+- **数字输入直接唤起数字键盘**，适配刘海屏与底部手势条
+
+#### 装到手机桌面（像个 App）
+
+| 系统 | 操作 |
+|---|---|
+| **iPhone / iPad** | Safari 打开网址 → 底部「分享」按钮 → **添加到主屏幕** |
+| **Android** | Chrome/Edge 打开网址 → 右上角 **⋮** → **添加到主屏幕**（或「安装应用」） |
+
+装好后图标会出现在桌面上，**全屏运行、没有浏览器地址栏**，并且**离线也能用**（已用 Service Worker 缓存全部页面与利率数据）。
+
+> 页面上也有一个提示条教你怎么装，点 × 关闭后不再打扰。
+
 ## 💾 桌面版下载
 
 [**Releases**](https://github.com/Shen200608/daily-interest-loan-calculator/releases/latest) → `LixiCalculator-Windows-x64.zip`
@@ -99,12 +119,15 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 
 ```
 daily-interest-loan-calculator/
-├─ index.html              网页版入口（单页应用）
-├─ css/app.css             样式（深色模式 / 响应式 / 打印友好）
+├─ index.html              网页版入口（单页应用，含手机底部导航）
+├─ css/app.css             样式（深色模式 / 响应式 / 打印友好 / 手机卡片式表格）
 ├─ js/finance.js           全部金融公式（UMD，浏览器与 Node 共用）
 ├─ js/rates.js             利率数据加载与口径换算
 ├─ js/ui.js  js/main.js    界面与事件
 ├─ data/rates.json         利率数据（可自行增补）
+├─ manifest.webmanifest    PWA 清单（装到手机/桌面用）
+├─ sw.js                   Service Worker（离线可用）
+├─ icon.svg  icon-*.png    图标（含 iOS 的 apple-touch-icon 与 Android 的 maskable）
 ├─ desktop/app.py          桌面版（Tkinter，单文件）
 ├─ desktop/build.ps1       PyInstaller 打包脚本
 ├─ tests/                  双端公式测试

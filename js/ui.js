@@ -226,6 +226,13 @@
       t.setAttribute('aria-selected', on ? 'true' : 'false');
       t.tabIndex = on ? 0 : -1;
     });
+    // 手机端底部导航同步高亮
+    qsa('.tabbar__btn').forEach(function (b) {
+      var on = b.dataset.tab === name;
+      b.classList.toggle('is-active', on);
+      if (on) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
     qsa('.panel').forEach(function (p) {
       var on = p.id === 'panel-' + name;
       p.hidden = !on;
@@ -233,6 +240,14 @@
     if (focusPanel) {
       var panel = $('panel-' + name);
       if (panel) panel.focus({ preventScroll: true });
+    }
+    // 切页后回到顶部，手机上尤其需要（否则停在上一页的滚动位置）
+    if (focusPanel === undefined || focusPanel === true) {
+      try {
+        window.scrollTo(0, 0);
+      } catch (e) {
+        /* ignore */
+      }
     }
     try {
       history.replaceState(null, '', '#' + name);
@@ -261,10 +276,56 @@
         }
       });
     });
+    // 手机底部导航
+    qsa('.tabbar__btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        switchTab(btn.dataset.tab);
+      });
+    });
     var hash = (location.hash || '').replace('#', '');
     if (['interest', 'loan', 'online', 'convert', 'rates'].indexOf(hash) >= 0) {
-      switchTab(hash);
+      switchTab(hash, false);
     }
+  }
+
+  /**
+   * 给表格每格补 data-label（取自表头），供手机端卡片式布局显示「标签：值」。
+   * 桌面端由 CSS 隐藏 thead，这层数据不影响桌面渲染。
+   *
+   * 同时给「长内容」单元格加 .is-block：说明文字、来源链接、操作按钮这类
+   * 内容较长的列，在手机卡片里整行铺满显示，否则标签会把正文挤成窄条。
+   */
+  function labelTableCells(rootEl) {
+    if (!rootEl) return;
+    var tables = rootEl.querySelectorAll ? rootEl.querySelectorAll('table') : [];
+    Array.prototype.forEach.call(tables, function (table) {
+      var ths = table.querySelectorAll('thead th');
+      if (!ths.length) return;
+      var labels = Array.prototype.map.call(ths, function (th, i) {
+        var t = (th.textContent || '').trim();
+        return t || ('列' + (i + 1));
+      });
+      Array.prototype.forEach.call(table.querySelectorAll('tbody tr'), function (tr) {
+        var cells = tr.children;
+        if (cells.length === 1 && cells[0].colSpan > 1) return; // 空态行跳过
+        Array.prototype.forEach.call(cells, function (td, i) {
+          // 第一格作为卡片标题，不需要标签
+          if (i === 0) {
+            td.removeAttribute('data-label');
+            return;
+          }
+          if (labels[i]) td.setAttribute('data-label', labels[i]);
+          // 长内容判定：含说明段落 / 来源链接 / 按钮 → 整行块级显示
+          var longContent =
+            td.querySelector('.rate-note') ||
+            td.querySelector('.rate-source') ||
+            td.querySelector('button') ||
+            td.querySelector('a');
+          if (longContent) td.classList.add('is-block');
+          else td.classList.remove('is-block');
+        });
+      });
+    });
   }
 
   /* =========================== 自定义利率下拉 =========================== */
@@ -642,8 +703,10 @@
     var gainHead = $('gainHead');
     if (gainHead) gainHead.hidden = !compound;
 
-    $('periodResultTitle').textContent = '持有 ' + daysUsed + ' 天的累计收益';
-    $('basisNote').textContent =
+    // 手机端卡片式表格需要每格带上列名
+    labelTableCells($('panel-interest'));
+
+    $('periodResultTitle').textContent = '持有 ' + daysUsed + ' 天的累计收益';    $('basisNote').textContent =
       '当前口径：' + (basis === 365 ? '日历天 365 基准' : '360 天基准') + ' · ' + (compound ? '复利（按日计息）' : '单利');
   }
 
@@ -815,6 +878,7 @@
     });
     tbody.innerHTML = '';
     tbody.appendChild(frag);
+    labelTableCells($('panel-loan'));
   }
 
   function clearLoanResults(msg) {
@@ -938,6 +1002,7 @@
       frag.appendChild(tr);
     });
     tbody.appendChild(frag);
+    labelTableCells($('panel-online'));
   }
 
   /** 按 30 天把日明细聚合成月 */
@@ -1138,6 +1203,7 @@
       tr.appendChild(noteCell);
       tbody.appendChild(tr);
     });
+    labelTableCells($('panel-convert'));
   }
 
   function renderFee() {
@@ -1242,6 +1308,8 @@
         if (rate.aliases && rate.aliases.length) {
           nameTd.appendChild(el('span', 'rate-alias', rate.aliases.join(' · ')));
         }
+        // 手机端整行做卡片标题（名称 + 别名），别让别名挤到右边一栏
+        nameTd.classList.add('is-block');
         tr.appendChild(nameTd);
 
         var kindTd = document.createElement('td');
@@ -1311,6 +1379,7 @@
       section.appendChild(scroll);
       wrap.appendChild(section);
     });
+    labelTableCells(wrap);
   }
 
   /** 「用这个」：跳到利息计算页并填入方案 A */
@@ -1704,6 +1773,74 @@
     }
   }
 
+  /**
+   * 手机端「添加到主屏幕」提示。
+   * 仅在：小屏幕 + 未安装（display-mode 不是 standalone）+ 用户没关过 时显示。
+   * 已装到桌面后不再打扰。
+   */
+  function initInstallTip() {
+    var tip = $('installTip');
+    if (!tip) return;
+
+    var DISMISS_KEY = 'lixi_install_tip_dismissed';
+    function isStandalone() {
+      try {
+        if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+        if (window.navigator && window.navigator.standalone) return true;
+      } catch (e) {
+        /* ignore */
+      }
+      return false;
+    }
+    function isMobileWidth() {
+      return window.innerWidth <= 700;
+    }
+    function dismissed() {
+      try {
+        return window.localStorage.getItem(DISMISS_KEY) === '1';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function update() {
+      var show = isMobileWidth() && !isStandalone() && !dismissed();
+      tip.hidden = !show;
+      if (show) {
+        // 根据平台给不同的操作提示
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var text = $('installTipText');
+        if (text) {
+          text.textContent = isIOS
+            ? '装到手机桌面：点底部「分享」按钮 → 「添加到主屏幕」，之后可全屏、可离线使用。'
+            : '装到手机桌面：点右上角「⋮」→「添加到主屏幕」，之后可全屏、可离线使用。';
+        }
+      }
+    }
+
+    var close = $('installTipClose');
+    if (close) {
+      close.addEventListener('click', function () {
+        tip.hidden = true;
+        try {
+          window.localStorage.setItem(DISMISS_KEY, '1');
+        } catch (e) {
+          /* 隐私模式下可能不可写，忽略 */
+        }
+      });
+    }
+
+    update();
+    window.addEventListener('resize', update);
+    // 从桌面图标启动时 display-mode 会变，重新评估
+    try {
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', update);
+    } catch (e) {
+      /* 老浏览器不支持 addEventListener，忽略 */
+    }
+  }
+
   /** 全局错误兜底：任何未捕获异常都变成页面提示，而不是白屏 */
   function installErrorGuard() {
     function show(err) {
@@ -1737,6 +1874,7 @@
 
     installErrorGuard();
     initBanner();
+    initInstallTip();
     initTabs();
     buildRateSelects();
     syncSelectsWithData();

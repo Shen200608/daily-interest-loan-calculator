@@ -1274,7 +1274,20 @@ main {
   margin-bottom: 3px;
 }
 
-/* ---------- 空态 / 错误 ---------- */
+/* ==========================================================================
+   手机版（≤ 700px）：底部导航 + 卡片式表格 + 大触摸目标 + 安全区
+   ========================================================================== */
+
+/* 底部导航默认隐藏，桌面端不占位 */
+.tabbar {
+  display: none;
+}
+
+/* 手机端才显示「安装到主屏幕」提示 */
+.install-tip {
+  display: none;
+}
+
 .error-box {
   padding: 14px 16px;
   border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--border));
@@ -1386,6 +1399,481 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   手机版布局（≤ 700px）——核心改动
+   1. 顶部页签 → 底部固定导航（拇指可达、每个 60px 高）
+   2. 宽表格 → 卡片式（每行变一张小卡，不再需要左右拖）
+   3. 触摸目标统一 ≥ 44px
+   4. 适配 iOS 刘海/底部手势条（safe-area-inset）
+   ========================================================================== */
+@media (max-width: 700px) {
+  :root {
+    --sp: 13px;
+    --radius-lg: 16px;
+  }
+
+  body {
+    /* 给固定底栏 + iOS 手势条留出空间 */
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    font-size: 15px;
+  }
+
+  /* ---------- 头部：只留品牌，页签移到下面 ---------- */
+  .site-header__inner {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .brand__mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+  .brand__title {
+    font-size: 16.5px;
+  }
+  .brand__sub {
+    display: none;
+  }
+  /* 顶部页签在手机上隐藏（改用底部 tabbar） */
+  .tabs {
+    display: none;
+  }
+
+  main {
+    padding-top: 14px;
+    padding-bottom: 10px;
+  }
+
+  .panel__head {
+    margin-bottom: 12px;
+  }
+  .panel__title {
+    font-size: 18px;
+  }
+  .panel__desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .card {
+    padding: 13px;
+    margin-bottom: 11px;
+  }
+  .card__head {
+    margin-bottom: 11px;
+  }
+  .card__title {
+    font-size: 15px;
+  }
+  .card__desc {
+    font-size: 12px;
+  }
+
+  /* ---------- 输入：加大触摸目标 ---------- */
+  .input {
+    padding: 12px 13px;
+    /* 16px 是 iOS 不自动放大的下限 */
+    font-size: 16px;
+    min-height: 46px;
+  }
+  .input-affix__prefix,
+  .input-affix__suffix {
+    padding: 0 12px;
+    font-size: 14px;
+  }
+  .field__label {
+    font-size: 12.5px;
+    margin-bottom: 5px;
+  }
+  .field {
+    margin-bottom: 11px;
+  }
+  .field__hint {
+    font-size: 12px;
+  }
+  .form-grid,
+  .form-grid--3 {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .inline-fields {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* ---------- 按钮 / 分段 / 开关 ---------- */
+  .seg {
+    width: 100%;
+    gap: 3px;
+  }
+  .seg__btn {
+    flex: 1 1 auto;
+    min-height: 42px;
+    padding: 10px 8px;
+    font-size: 13.5px;
+  }
+  .seg--sm .seg__btn {
+    min-height: 40px;
+    padding: 9px 8px;
+    font-size: 13px;
+  }
+  /* 天数快捷 chips：一行放不下就换行，每个都够大 */
+  .quick-row {
+    gap: 8px;
+  }
+  .chip {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn {
+    min-height: 44px;
+    padding: 11px 18px;
+    font-size: 14.5px;
+  }
+  .btn--sm {
+    min-height: 38px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .btn-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .link-btn {
+    min-height: 34px;
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+  .switch {
+    min-height: 44px;
+  }
+
+  /* ---------- 收益卡片 A/B：单列已由 860px 断点处理 ---------- */
+  .rate-card__head {
+    margin-bottom: 8px;
+  }
+
+  /* ---------- 统计卡 ---------- */
+  .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 11px;
+  }
+  .stat {
+    padding: 10px 11px;
+  }
+  .stat__label {
+    font-size: 11.5px;
+  }
+  .stat__value {
+    font-size: 18px;
+  }
+  .stat--hero .stat__value {
+    font-size: 21px;
+  }
+  .verdict {
+    font-size: 13px;
+    padding: 12px 13px;
+    margin-bottom: 11px;
+  }
+
+  /* ---------- 表格 → 卡片流 ---------- */
+  /* 取消横向滚动容器，改为逐行卡片 */
+  .table-scroll {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    border-radius: 0;
+  }
+  .table-scroll--tall {
+    max-height: none;
+    overflow: visible;
+  }
+  .table {
+    min-width: 0;
+    width: 100%;
+    font-size: 13.5px;
+    display: block;
+  }
+  .table caption {
+    display: none;
+  }
+  .table thead {
+    display: none;
+  }
+  .table tbody {
+    display: block;
+  }
+  .table tbody tr {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3px 10px;
+    padding: 11px 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--surface);
+  }
+  .table tbody tr:last-child {
+    margin-bottom: 0;
+  }
+  .table tbody tr:hover td {
+    background: transparent;
+  }
+  .table tbody td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 2px 0;
+    border: 0;
+    font-size: 13.5px;
+  }
+  /* 让每格自带"标签"：用 data-label 或 CSS 无法拿表头，改用 JS 补 data-label */
+  .table tbody td::before {
+    content: attr(data-label);
+    flex: none;
+    color: var(--text-3);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  /* 长内容（说明 / 来源 / 操作按钮）整行铺满、标签在上内容在下 */
+  .table tbody td.is-block::before {
+    display: none;
+  }
+  .table tbody td.is-block {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    grid-column: 1 / -1;
+  }
+  .table--num tbody td:not(:first-child) {
+    text-align: right;
+    white-space: normal;
+  }
+  /* 第一格（期数/方案）横跨整行做标题 */
+  .table tbody td:first-child {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    padding-bottom: 5px;
+    margin-bottom: 3px;
+    border-bottom: 1px dashed var(--border);
+    font-weight: 650;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .table tbody td:first-child::before {
+    display: none;
+  }
+  .table tbody td:last-child {
+    border-bottom: 0;
+  }
+  .table__empty {
+    display: block !important;
+    grid-column: 1 / -1;
+    padding: 20px 12px !important;
+  }
+  .table tr.is-total td {
+    background: transparent;
+  }
+
+  /* 利率大全的表格：卡片化后更紧凑 */
+  .rate-group {
+    margin-bottom: 14px;
+  }
+  .rate-group__title {
+    font-size: 14.5px;
+  }
+  .rate-group__desc {
+    display: none;
+  }
+  .rate-note {
+    max-width: none;
+    text-align: left;
+  }
+  .rate-source {
+    font-size: 12.5px;
+    /* 扩大到可点区域 */
+    padding: 2px 0;
+    min-height: 26px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 利率卡片：名称/别名与数值各自独占一行，避免挤在一起 */
+  .table tbody td .rate-name {
+    display: block;
+    margin-bottom: 2px;
+  }
+  .table tbody td .rate-alias {
+    display: block;
+    margin-top: 0;
+    line-height: 1.4;
+  }
+  /* 名称列在手机上是卡片标题，直接显示名字本身，不要「名称 / 别名」标签 */
+  .table tbody td .rate-name,
+  .table tbody td .rate-alias {
+    text-align: left;
+  }
+  /* 说明、来源、操作这类长内容列：标签在上、内容在下，整行铺满 */
+  .table tbody td .rate-note {
+    display: block;
+    width: 100%;
+  }
+  /* 口径/年化这类短值：标签与值一行两端对齐即可 */
+  .table tbody td .pill {
+    font-size: 11.5px;
+    padding: 2px 9px;
+  }
+
+  /* ---------- 换算网格 ---------- */
+  .convert-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .conv-item {
+    padding: 10px 11px;
+  }
+  .conv-item__value {
+    font-size: 16px;
+  }
+
+  /* ---------- 利率下拉：全屏面板更好点 ---------- */
+  .rate-select .rs__panel {
+    max-height: 60vh;
+  }
+  .rs__trigger {
+    min-height: 46px;
+  }
+  .rs__opt {
+    min-height: 44px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  .rs__search {
+    min-height: 42px;
+    font-size: 16px;
+  }
+
+  /* ---------- 页脚 ---------- */
+  .site-footer {
+    margin-top: 18px;
+    padding: 16px 0 22px;
+    font-size: 12px;
+  }
+  .footer__privacy {
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  /* ---------- 底部导航栏 ---------- */
+  .tabbar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 12px rgba(16, 24, 40, 0.07);
+  }
+  .tabbar__btn {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 58px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 7px 2px 6px;
+    border: 0;
+    background: transparent;
+    color: var(--text-3);
+    font-size: 10.5px;
+    font-weight: 550;
+    line-height: 1.2;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease;
+  }
+  .tabbar__icon {
+    font-size: 19px;
+    line-height: 1;
+  }
+  .tabbar__btn.is-active {
+    color: var(--brand);
+  }
+  .tabbar__btn.is-active .tabbar__icon {
+    transform: translateY(-1px);
+  }
+  .tabbar__btn:active {
+    background: color-mix(in srgb, var(--brand) 10%, transparent);
+  }
+
+  /* ---------- 安装到主屏幕提示 ---------- */
+  .install-tip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 11px;
+    padding: 11px 13px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--brand);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font-size: 12.5px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+  .install-tip__close {
+    flex: none;
+    min-width: 30px;
+    min-height: 30px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--surface-3);
+    color: var(--text-3);
+    font-size: 16px;
+    cursor: pointer;
+  }
+}
+
+/* 超窄屏（老款小屏手机）再压一档 */
+@media (max-width: 360px) {
+  .stat-grid,
+  .stat-grid--4,
+  .stat-grid--5 {
+    grid-template-columns: 1fr;
+  }
+  .convert-grid {
+    grid-template-columns: 1fr;
+  }
+  .tabbar__btn {
+    font-size: 10px;
+  }
+  .table tbody td {
+    font-size: 13px;
+  }
+}
+
+/* 打印时底部导航也不打印 */
+@media print {
+  .tabbar,
+  .install-tip {
+    display: none !important;
+  }
+}
+
 
 /* 减少动效偏好 */
 @media (prefers-reduced-motion: reduce) {
